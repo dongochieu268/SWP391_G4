@@ -62,7 +62,7 @@ public class AuthController {
         // ROLE REDIRECT
         if (user.getRoleId() == 1) {
 
-            return "admin/index";
+            return "redirect:/admin/semesters";
         }
 
         if (user.getRoleId() == 2) {
