@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Learning Nodes</title>
+</head>
+<body>
+<h1>Danh sách Node của Lộ trình số: <span th:text="${pathId}"></span></h1>
+
+<div style="border: 1px solid black; padding: 10px; margin-bottom: 20px;">
+    <h3>Thêm Node Mới</h3>
+    <form th:action="@{/teacher/learning-path/node/save}" method="post">
+        <input type="hidden" name="pathId" th:value="${pathId}">
+        <p>Tiêu đề: <input type="text" name="title" required></p>
+        <p>Thứ tự (Order): <input type="number" step="0.5" name="nodeOrder" required></p>
+        <button type="submit">Lưu Node</button>
+    </form>
+</div>
+
+<table border="1" cellpadding="5">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Tiêu đề</th>
+        <th>Thứ tự</th>
+        <th>Hành động</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="node : ${nodes}">
+        <td th:text="${node.id}"></td>
+        <td th:text="${node.title}"></td>
+        <td th:text="${node.nodeOrder}"></td>
+        <td>
+            <a th:href="@{/teacher/learning-path/node/delete/{id}(id=${node.id}, pathId=${pathId})}">Xóa</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>
