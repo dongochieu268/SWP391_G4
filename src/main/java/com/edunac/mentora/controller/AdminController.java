@@ -1,6 +1,5 @@
 package com.edunac.mentora.controller;
 
-
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -9,7 +8,6 @@ public class AdminController {
 
     @GetMapping("/")
     public String home() {
-
-        return "admin/index";
+        return "redirect:/admin/semesters";
     }
 }
