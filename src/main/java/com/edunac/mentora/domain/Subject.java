@@ -8,29 +8,26 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users")
+@Table(name = "subjects")
 @Getter
 @Setter
-public class User {
+public class Subject {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "full_name")
-    private String fullName;
+    @Column(nullable = false, unique = true, length = 20)
+    private String code;
 
-    private String email;
+    @Column(nullable = false, length = 200)
+    private String name;
 
-    private String password;
+    @Column(length = 2000)
+    private String description;
 
-    @Column(name = "role_id")
-    private Integer roleId;
-
-    private String status;
-
-    @Column(name = "email_verified")
-    private Boolean emailVerified;
+    @Column(nullable = false, length = 20)
+    private String status = "ACTIVE";
 
     @CreationTimestamp
     @Column(name = "created_at")

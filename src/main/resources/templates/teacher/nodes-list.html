@@ -1,41 +1,347 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Test Learning Nodes</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mentora – Quản lý Node</title>
+    <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+    <link rel="stylesheet" href="/assets/css/styles.min.css" />
 </head>
 <body>
-<h1>Danh sách Node của Lộ trình số: <span th:text="${pathId}"></span></h1>
+<div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6"
+     data-sidebartype="full" data-sidebar-position="fixed" data-header-position="fixed">
 
-<div style="border: 1px solid black; padding: 10px; margin-bottom: 20px;">
-    <h3>Thêm Node Mới</h3>
-    <form th:action="@{/teacher/learning-path/node/save}" method="post">
-        <input type="hidden" name="pathId" th:value="${pathId}">
-        <p>Tiêu đề: <input type="text" name="title" required></p>
-        <p>Thứ tự (Order): <input type="number" step="0.5" name="nodeOrder" required></p>
-        <button type="submit">Lưu Node</button>
-    </form>
+    <aside th:replace="~{fragments/teacher-sidebar :: sidebar('paths')}"></aside>
+
+    <div class="body-wrapper">
+        <header class="app-header">
+            <nav class="navbar navbar-expand-lg navbar-light">
+                <ul class="navbar-nav">
+                    <li class="nav-item d-block d-xl-none">
+                        <a class="nav-link sidebartoggler" id="headerCollapse" href="javascript:void(0)">
+                            <i class="ti ti-menu-2"></i>
+                        </a>
+                    </li>
+                </ul>
+                <div class="navbar-collapse justify-content-end px-0" id="navbarNav">
+                    <ul class="navbar-nav flex-row ms-auto align-items-center justify-content-end">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link" href="javascript:void(0)" id="drop2"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="/assets/images/profile/user-1.jpg" alt="" width="35" height="35" class="rounded-circle">
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-end dropdown-menu-animate-up" aria-labelledby="drop2">
+                                <div class="message-body">
+                                    <a href="/logout" class="btn btn-outline-primary mx-3 mt-2 d-block">Đăng xuất</a>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </header>
+
+        <div class="body-wrapper-inner">
+            <div class="container-fluid">
+
+                <!-- Breadcrumb & Title -->
+                <div class="row mb-4">
+                    <div class="col-12 d-flex justify-content-between align-items-start flex-wrap gap-2">
+                        <div>
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb mb-1">
+                                    <li class="breadcrumb-item"><a href="/teacher">Dashboard</a></li>
+                                    <li class="breadcrumb-item active">Lộ trình học</li>
+                                </ol>
+                            </nav>
+                            <h4 class="fw-semibold mb-0">
+                                <i class="ti ti-sitemap me-2 text-primary"></i>
+                                <span th:text="${path.name}">Lộ trình học</span>
+                            </h4>
+                            <small class="text-muted" th:text="${#lists.size(nodes)} + ' node'">0 node</small>
+                        </div>
+                        <form th:action="@{'/teacher/learning-path/' + ${pathId} + '/normalize'}" method="post">
+                            <button type="submit" class="btn btn-outline-warning btn-sm"
+                                    onclick="return confirm('Chuẩn hoá lại thứ tự tất cả node (1, 2, 3,...)?')">
+                                <i class="ti ti-adjustments me-1"></i> Chuẩn hoá thứ tự
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+
+                    <!-- ===== LEFT: DANH SÁCH NODE ===== -->
+                    <div class="col-xl-8">
+
+                        <!-- Empty state -->
+                        <div th:if="${#lists.isEmpty(nodes)}" class="card">
+                            <div class="card-body text-center py-5 text-muted">
+                                <i class="ti ti-sitemap" style="font-size:3rem;opacity:.3;display:block;margin-bottom:1rem;"></i>
+                                <p class="mb-0">Lộ trình chưa có node nào.<br>Hãy thêm node đầu tiên từ form bên phải!</p>
+                            </div>
+                        </div>
+
+                        <!-- Node list -->
+                        <div th:each="node, stat : ${nodes}">
+
+                            <!-- ---- NODE CARD ---- -->
+                            <div class="card mb-1" th:id="'node-' + ${node.id}">
+                                <div class="card-header d-flex align-items-center gap-2 py-2">
+                                    <!-- Order badge -->
+                                    <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+                                          style="width:28px;height:28px;font-size:12px;"
+                                          th:text="${stat.index + 1}">1</span>
+
+                                    <!-- Title -->
+                                    <span class="fw-semibold flex-grow-1" th:text="${node.title}">Tiêu đề node</span>
+
+                                    <!-- Prerequisite badge -->
+                                    <span th:if="${node.prerequisiteNode != null}"
+                                          class="badge bg-warning text-dark d-flex align-items-center gap-1">
+                                        <i class="ti ti-lock fs-2"></i>
+                                        Yêu cầu node #<span th:text="${node.prerequisiteNode.id}"></span>
+                                    </span>
+
+                                    <!-- Order value (muted) -->
+                                    <code class="text-muted small" th:text="${node.nodeOrder}" style="font-size:11px;"></code>
+
+                                    <!-- Delete btn -->
+                                    <a th:href="@{/teacher/learning-path/node/delete/{id}(id=${node.id},pathId=${pathId})}"
+                                       class="btn btn-outline-danger btn-sm"
+                                       onclick="return confirm('Xoá node này và toàn bộ học liệu bên trong?')">
+                                        <i class="ti ti-trash"></i>
+                                    </a>
+                                </div>
+
+                                <div class="card-body pt-2 pb-3">
+                                    <!-- Description -->
+                                    <p th:if="${node.description != null and !node.description.isEmpty()}"
+                                       class="text-muted small mb-3" th:text="${node.description}"></p>
+
+                                    <!-- Content list -->
+                                    <div th:with="contents=${contentMap[node.id]}">
+                                        <div th:if="${contents != null and !#lists.isEmpty(contents)}" class="mb-3">
+                                            <p class="text-muted small mb-1 fw-semibold">Học liệu:</p>
+                                            <div th:each="ct : ${contents}"
+                                                 class="d-flex align-items-center gap-2 border rounded px-3 py-2 mb-1 bg-light-subtle">
+                                                <!-- Type badge with color by type -->
+                                                <span class="badge"
+                                                      th:classappend="${ct.contentType == 'VIDEO'} ? ' bg-danger' :
+                                                                       (${ct.contentType == 'FILE'} ? ' bg-success' :
+                                                                       (${ct.contentType == 'LINK'} ? ' bg-info text-dark' : ' bg-secondary'))"
+                                                      th:text="${ct.contentType}">TYPE</span>
+                                                <span class="flex-grow-1 small" th:text="${ct.title}">Tiêu đề</span>
+                                                <!-- URL preview -->
+                                                <a th:if="${ct.contentUrl != null and !ct.contentUrl.isEmpty()}"
+                                                   th:href="${ct.contentUrl}" target="_blank"
+                                                   class="text-muted small"><i class="ti ti-external-link"></i></a>
+                                                <!-- Delete content -->
+                                                <a th:href="@{/teacher/learning-path/node-content/delete/{id}(id=${ct.id},pathId=${pathId})}"
+                                                   class="text-danger small"
+                                                   onclick="return confirm('Xoá học liệu này?')">
+                                                    <i class="ti ti-x"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Toggle add content form -->
+                                    <button class="btn btn-outline-primary btn-sm" type="button"
+                                            th:attr="data-bs-toggle='collapse',data-bs-target='#cf-' + ${node.id}">
+                                        <i class="ti ti-plus me-1"></i> Thêm học liệu
+                                    </button>
+
+                                    <!-- Add content form (collapse) -->
+                                    <div class="collapse mt-3" th:id="'cf-' + ${node.id}">
+                                        <div class="border rounded p-3 bg-light-subtle">
+                                            <p class="fw-semibold small mb-2">Thêm học liệu (UC17)</p>
+                                            <form th:action="@{/teacher/learning-path/node-content/save}" method="post">
+                                                <input type="hidden" name="nodeId" th:value="${node.id}" />
+                                                <input type="hidden" name="pathId" th:value="${pathId}" />
+                                                <div class="row g-2">
+                                                    <div class="col-sm-4">
+                                                        <label class="form-label small mb-1">Loại</label>
+                                                        <select class="form-select form-select-sm content-type-select"
+                                                                name="contentType"
+                                                                th:attr="data-node-id=${node.id}">
+                                                            <option value="TEXT">TEXT – Văn bản</option>
+                                                            <option value="VIDEO">VIDEO – Đường dẫn</option>
+                                                            <option value="FILE">FILE – Đường dẫn</option>
+                                                            <option value="LINK">LINK – Liên kết</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-sm-8">
+                                                        <label class="form-label small mb-1">Tiêu đề <span class="text-danger">*</span></label>
+                                                        <input type="text" class="form-control form-control-sm"
+                                                               name="title" placeholder="Tiêu đề học liệu" required />
+                                                    </div>
+                                                    <!-- URL field (VIDEO / FILE / LINK) -->
+                                                    <div class="col-12 url-field" th:id="'url-' + ${node.id}" style="display:none;">
+                                                        <label class="form-label small mb-1">URL</label>
+                                                        <input type="text" class="form-control form-control-sm"
+                                                               name="contentUrl" placeholder="https://..." />
+                                                    </div>
+                                                    <!-- Text field (TEXT) -->
+                                                    <div class="col-12 text-field" th:id="'txt-' + ${node.id}">
+                                                        <label class="form-label small mb-1">Nội dung</label>
+                                                        <textarea class="form-control form-control-sm" name="contentText"
+                                                                  rows="3" placeholder="Nhập nội dung văn bản..."></textarea>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <button type="submit" class="btn btn-primary btn-sm">
+                                                            <i class="ti ti-device-floppy me-1"></i> Lưu học liệu
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- ---- END NODE CARD ---- -->
+
+                            <!-- Insert-between divider -->
+                            <div th:if="${!stat.last}"
+                                 th:with="nextNode=${nodes[stat.count]}"
+                                 class="text-center my-1">
+                                <button type="button"
+                                        class="btn btn-outline-secondary btn-sm rounded-pill insert-btn px-3"
+                                        th:attr="data-prev=${node.nodeOrder},data-next=${nextNode.nodeOrder}"
+                                        title="Chèn node mới vào đây">
+                                    <i class="ti ti-plus"></i>
+                                </button>
+                            </div>
+
+                        </div>
+                        <!-- end node list -->
+
+                    </div>
+                    <!-- end left col -->
+
+                    <!-- ===== RIGHT: ADD NODE FORM ===== -->
+                    <div class="col-xl-4">
+                        <div class="card" id="addNodeCard" style="position:sticky;top:80px;">
+                            <div class="card-header d-flex align-items-center gap-2">
+                                <i class="ti ti-circle-plus text-primary"></i>
+                                <span class="fw-semibold flex-grow-1">Thêm Node mới</span>
+                                <span id="insertBadge" class="badge bg-info" style="display:none;">
+                                    Chèn vào giữa
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <form th:action="@{/teacher/learning-path/node/save}" method="post">
+                                    <input type="hidden" name="pathId" th:value="${pathId}" />
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">
+                                            Tiêu đề <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" class="form-control" name="title"
+                                               placeholder="Tên node..." required />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Mô tả</label>
+                                        <textarea class="form-control" name="description" rows="2"
+                                                  placeholder="Mô tả ngắn (tuỳ chọn)..."></textarea>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Node tiên quyết</label>
+                                        <select class="form-select" name="prerequisiteNodeId">
+                                            <option value="">-- Không cần tiên quyết --</option>
+                                            <option th:each="n : ${nodes}"
+                                                    th:value="${n.id}"
+                                                    th:text="${n.title}">Node</option>
+                                        </select>
+                                        <div class="form-text">
+                                            <i class="ti ti-lock fs-2"></i>
+                                            Sinh viên phải hoàn thành node này trước khi mở.
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">
+                                            Thứ tự (node_order)
+                                            <span id="insertHint" class="text-info small" style="display:none;">
+                                                — được tính tự động
+                                            </span>
+                                        </label>
+                                        <input type="number" class="form-control font-monospace" id="nodeOrderInput"
+                                               name="nodeOrder"
+                                               th:value="${nextOrder}"
+                                               step="0.000000001" required />
+                                        <div class="form-text">
+                                            Nhấn nút <strong>+</strong> giữa 2 node để chèn vào giữa (tự điền).
+                                            Hệ thống tự normalize khi khoảng cách &lt; 0.001.
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary flex-grow-1">
+                                            <i class="ti ti-device-floppy me-1"></i> Lưu Node
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary" id="resetBtn"
+                                                title="Huỷ chèn giữa, về cuối danh sách">
+                                            <i class="ti ti-rotate-clockwise"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- end right col -->
+
+                </div>
+                <!-- end row -->
+
+            </div>
+        </div>
+    </div>
 </div>
 
-<table border="1" cellpadding="5">
-    <thead>
-    <tr>
-        <th>ID</th>
-        <th>Tiêu đề</th>
-        <th>Thứ tự</th>
-        <th>Hành động</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="node : ${nodes}">
-        <td th:text="${node.id}"></td>
-        <td th:text="${node.title}"></td>
-        <td th:text="${node.nodeOrder}"></td>
-        <td>
-            <a th:href="@{/teacher/learning-path/node/delete/{id}(id=${node.id}, pathId=${pathId})}">Xóa</a>
-        </td>
-    </tr>
-    </tbody>
-</table>
+<script src="/assets/libs/jquery/dist/jquery.min.js"></script>
+<script src="/assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/sidebarmenu.js"></script>
+<script src="/assets/js/app.min.js"></script>
+<script src="/assets/libs/simplebar/dist/simplebar.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+<script th:inline="javascript">
+    const DEFAULT_ORDER = /*[[${nextOrder}]]*/ 1;
+
+    // ---- Insert between: nút "+" giữa 2 node ----
+    document.querySelectorAll('.insert-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const prev = parseFloat(btn.dataset.prev);
+            const next = parseFloat(btn.dataset.next);
+            const mid = ((prev + next) / 2).toFixed(9);
+
+            document.getElementById('nodeOrderInput').value = mid;
+            document.getElementById('insertBadge').style.display = 'inline-block';
+            document.getElementById('insertHint').style.display = 'inline';
+            document.getElementById('addNodeCard').scrollIntoView({behavior: 'smooth'});
+        });
+    });
+
+    // ---- Reset về cuối danh sách ----
+    document.getElementById('resetBtn').addEventListener('click', () => {
+        document.getElementById('nodeOrderInput').value = DEFAULT_ORDER;
+        document.getElementById('insertBadge').style.display = 'none';
+        document.getElementById('insertHint').style.display = 'none';
+    });
+
+    // ---- Toggle URL / Text field theo content type ----
+    document.querySelectorAll('.content-type-select').forEach(select => {
+        select.addEventListener('change', () => toggleContentFields(select));
+    });
+
+    function toggleContentFields(select) {
+        const nodeId = select.dataset.nodeId;
+        const isText = select.value === 'TEXT';
+        document.getElementById('url-' + nodeId).style.display = isText ? 'none' : 'block';
+        document.getElementById('txt-' + nodeId).style.display = isText ? 'block' : 'none';
+    }
+</script>
 </body>
 </html>
